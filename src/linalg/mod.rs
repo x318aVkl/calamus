@@ -1,5 +1,15 @@
+//!
+//! Linear algebra datatypes and subroutines.
+//! 
+//! 
+//! 
 
 
+pub mod vector;
+pub mod matrix;
+pub mod lu;
+
+use crate::num_traits::FloatNumber;
 
 #[derive(Debug)]
 pub enum Error {
@@ -18,97 +28,16 @@ impl std::error::Error for Error {
 }
 
 
-// performs the plu decomposition inplace
-pub fn plu_decompose(
-    a: &mut [f64],
-    p: &mut [usize],
-) -> Result<(), Error> {
-
-    let tol = 1e-16;
-
-    let n = (a.len() as f64).sqrt() as usize;
-
-    if n != (p.len() - 1) {
-        return Err(Error::ErrorSizeInvalid);
-    }
-    if (n * n) != a.len() {
-        return Err(Error::ErrorSizeInvalid);
-    }
-
-    for i in 0..n {
-        p[i] = i;
-    }
-    p[n] = n;
-
-    for i in 0..n {
-
-        let mut maxa = 0.0;
-        let mut imax = i;
-
-        for k in i..n {
-            let absa = a[k*n + i].abs();
-            if absa > maxa {
-                maxa = absa;
-                imax = k;
-            }
-        }
-
-        if maxa < tol {
-            return Err(Error::ErrorSingularMatrix);
-        }
-
-        if imax != i {
-            // permutation
-            let j = p[i];
-            p[i] = p[imax];
-            p[imax] = j;
-
-            // swap rows
-            for j in 0..n {
-                let atmp = a[i*n + j];
-                a[i*n + j] = a[imax*n + j];
-                a[imax*n + j] = atmp;
-            }
-
-            p[n] += 1;
-        }
-
-        for j in (i+1)..n {
-            a[j*n + i] /= a[i*n + i];
-
-            for k in (i+1)..n {
-                a[j*n + k] -= a[j*n + i] * a[i*n + k];
-            }
-        }
-
-    }
 
 
-    Ok(())
-}
+pub trait MatrixFactorization<T> {
+    fn allocate(size: usize) -> Self where Self: Sized;
 
+    fn set_matrix<M>(&mut self, matrix: &M) -> Result<(), Error> where M: matrix::Matrix<T>;
 
+    fn factorize(&mut self) -> Result<(), Error> where T: FloatNumber;
 
-pub fn plu_solve(x: &mut [f64], b: &[f64], lu: &[f64], p: &[usize]) {
-
-    let n = x.len();
-
-    for i in 0..n {
-
-        x[i] = b[p[i]];
-
-        for k in 0..i {
-            x[i] -= lu[i*n + k] * x[k];
-        }
-    }
-
-    for i in (0..n).rev() {
-        for k in (i+1)..n {
-            x[i] -= lu[i*n + k] * x[k];
-        }
-        x[i] /= lu[i*n + i];
-    }
-
+    fn solve<X, B>(&self, x: &mut X, b: &B) where X: vector::VectorMut<T>, B: vector::Vector<T>, T: FloatNumber;
 }
 
 

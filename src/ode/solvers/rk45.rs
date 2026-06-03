@@ -1,61 +1,61 @@
-use crate::{ode::Ode, solvers::Solver};
+use crate::{linalg::vector::{DynamicVector, Vector, VectorView}, num_traits::FloatNumber, ode::Ode, ode::solvers::Solver};
 
 
 
 // Explicit adaptive Runge-Kutta 5 solver
 // Good for non-stiff problems
-pub struct ExplicitRk45<F: Ode> {
+pub struct ExplicitRk45<T, F: Ode<T>> {
     ode: F,
-    solution: Vec<f64>,
-    solution_tmp: Vec<f64>,
-    k1: Vec<f64>,
-    k2: Vec<f64>,
-    k3: Vec<f64>,
-    k4: Vec<f64>,
-    k5: Vec<f64>,
-    k6: Vec<f64>,
-    t: f64,
-    dt: f64,
+    solution: DynamicVector<T>,
+    solution_tmp: DynamicVector<T>,
+    k1: DynamicVector<T>,
+    k2: DynamicVector<T>,
+    k3: DynamicVector<T>,
+    k4: DynamicVector<T>,
+    k5: DynamicVector<T>,
+    k6: DynamicVector<T>,
+    t: T,
+    dt: T,
     n_steps: usize,
 
-    min_dt: f64,
-    te_tolerance: f64,
+    min_dt: T,
+    te_tolerance: T,
 }
 
 
-impl<F: Ode> ExplicitRk45<F> {
+impl<T, F: Ode<T>> ExplicitRk45<T, F> where T: FloatNumber {
 
     pub fn new(ode: F) -> Self {
         let size = ode.problem_size();
         Self {
             ode,
-            solution: vec![0.0; size],
-            solution_tmp: vec![0.0; size],
-            k1: vec![0.0; size],
-            k2: vec![0.0; size],
-            k3: vec![0.0; size],
-            k4: vec![0.0; size],
-            k5: vec![0.0; size],
-            k6: vec![0.0; size],
-            t: 0.0,
-            dt: 1e-6,
+            solution: DynamicVector::new(T::ZERO, size),
+            solution_tmp: DynamicVector::new(T::ZERO, size),
+            k1: DynamicVector::new(T::ZERO, size),
+            k2: DynamicVector::new(T::ZERO, size),
+            k3: DynamicVector::new(T::ZERO, size),
+            k4: DynamicVector::new(T::ZERO, size),
+            k5: DynamicVector::new(T::ZERO, size),
+            k6: DynamicVector::new(T::ZERO, size),
+            t: T::ZERO,
+            dt: T::fraction(1, 1_000_000),
             n_steps: 0,
-            min_dt: 1e-20,
-            te_tolerance: 1e-6,
+            min_dt: T::EPSILON * T::fraction(1, 1_000_000),
+            te_tolerance: T::fraction(1, 1_000_000),
         }
     }
 
-    pub fn with_t0(mut self, t0: f64) -> Self {
+    pub fn with_t0(mut self, t0: T) -> Self {
         self.t = t0;
         self
     }
 
-    pub fn with_dt0(mut self, dt0: f64) -> Self {
+    pub fn with_dt0(mut self, dt0: T) -> Self {
         self.dt = dt0;
         self
     }
 
-    pub fn with_initial_guess(mut self, guess_function: impl Fn(usize) -> f64) -> Self {
+    pub fn with_initial_guess(mut self, guess_function: impl Fn(usize) -> T) -> Self {
 
         for i in 0..self.solution.len() {
             self.solution[i] = guess_function(i);
@@ -64,12 +64,12 @@ impl<F: Ode> ExplicitRk45<F> {
         self
     }
 
-    pub fn with_min_dt(mut self, min_dt: f64) -> Self {
+    pub fn with_min_dt(mut self, min_dt: T) -> Self {
         self.min_dt = min_dt;
         self
     }
 
-    pub fn with_tolerance(mut self, tol: f64) -> Self {
+    pub fn with_tolerance(mut self, tol: T) -> Self {
         self.te_tolerance = tol;
         self
     }
@@ -77,23 +77,23 @@ impl<F: Ode> ExplicitRk45<F> {
 }
 
 
-impl<F: Ode> Solver for ExplicitRk45<F> where <F as Ode>::Error: std::fmt::Debug {
+impl<T, F: Ode<T>> Solver<T> for ExplicitRk45<T, F> where <F as Ode<T>>::Error: std::fmt::Debug, T: FloatNumber {
     
     type Error = F::Error;
 
-        fn solution(&self) -> &[f64] {
-        &self.solution
+    fn solution<'a>(&'a self) -> VectorView<'a, T> {
+        self.solution.view()
     }
 
-    fn time(&self) -> f64 {
+    fn time(&self) -> T {
         self.t
     }
 
-    fn step_size(&self) -> f64 {
+    fn step_size(&self) -> T {
         self.dt
     }
 
-    fn set_step_size(&mut self, dt: f64) {
+    fn set_step_size(&mut self, dt: T) {
         self.dt = dt;
     }
 
@@ -102,7 +102,7 @@ impl<F: Ode> Solver for ExplicitRk45<F> where <F as Ode>::Error: std::fmt::Debug
     }
 
 
-    fn reinit(&mut self, initial_solution: &[f64], time: f64) {
+    fn reinit(&mut self, initial_solution: &impl Vector<T>, time: T) {
         for i in 0..self.solution.len() {
             self.solution[i] = initial_solution[i];
         }
@@ -113,18 +113,18 @@ impl<F: Ode> Solver for ExplicitRk45<F> where <F as Ode>::Error: std::fmt::Debug
 
     fn step(&mut self) -> Result<(), F::Error> {
 
-        let alpha = [0.0, 2.0/9.0, 1.0/3.0, 3.0/4.0, 1.0, 5.0/6.0];
+        let alpha = [T::ZERO, T::fraction(2, 9), T::fraction(1, 3), T::fraction(3, 4), T::from(1), T::fraction(5, 6)];
         let beta = [
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [2.0/9.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [1.0/12.0, 1.0/4.0, 0.0, 0.0, 0.0, 0.0],
-            [69.0/128.0, -243.0/128.0, 135.0/64.0, 0.0, 0.0, 0.0],
-            [-17.0/12.0, 27.0/4.0, -27.0/5.0, 16.0/15.0, 0.0, 0.0],
-            [65.0/432.0, -5.0/16.0, 13.0/16.0, 4.0/27.0, 5.0/144.0, 0.0]
+            [T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO],
+            [T::fraction(2, 9), T::ZERO, T::ZERO, T::ZERO, T::ZERO, T::ZERO],
+            [T::fraction(1, 12), T::fraction(1, 4), T::ZERO, T::ZERO, T::ZERO, T::ZERO],
+            [T::fraction(69, 128), T::fraction(-243, 128), T::fraction(135, 64), T::ZERO, T::ZERO, T::ZERO],
+            [T::fraction(-17, 12), T::fraction(27, 4), T::fraction(-27, 5), T::fraction(16, 15), T::ZERO, T::ZERO],
+            [T::fraction(65, 432), T::fraction(-5, 16), T::fraction(13, 16), T::fraction(4, 27), T::fraction(5, 144), T::ZERO]
         ];
 
-        let c_4 = [1.0/9.0, 0.0, 9.0/20.0, 16.0/45.0, 1.0/12.0, 0.0];
-        let c_5 = [47.0/450.0, 0.0, 12.0/25.0, 32.0/225.0, 1.0/30., 6.0/25.0];
+        let c_4 = [T::fraction(1, 9), T::ZERO, T::fraction(9, 20), T::fraction(16, 45), T::fraction(1, 12), T::ZERO];
+        let c_5 = [T::fraction(47, 450), T::ZERO, T::fraction(12, 25), T::fraction(32, 225), T::fraction(1, 30), T::fraction(6, 25)];
 
         let t = self.t;
         let h = self.dt;
@@ -185,23 +185,23 @@ impl<F: Ode> Solver for ExplicitRk45<F> where <F as Ode>::Error: std::fmt::Debug
             self.k6[i] *= h;
         }
 
-        let mut truncmax: f64 = 1e-20;
+        let mut truncmax = T::EPSILON;
         for i in 0..self.solution.len() {
             let k = [self.k1[i], self.k2[i], self.k3[i], self.k4[i], self.k5[i], self.k6[i]];
 
-            let mut truncerror = 0.0;
+            let mut truncerror = T::ZERO;
             self.solution_tmp[i] = self.solution[i];
             for j in 0..k.len() {
                 self.solution_tmp[i] += k[j] * c_5[j];
                 truncerror += (c_5[j] - c_4[j]) * k[j];
             }
-            let truncerror = truncerror.abs();
+            let truncerror = truncerror.float_abs();
 
-            truncmax = truncmax.max(truncerror);
+            truncmax = truncmax.float_max(truncerror);
         }
 
-        let epsilon = 1e-8;
-        let hnew = 0.9 * h * (epsilon / truncmax).powf(0.2);
+        let epsilon = T::EPSILON.float_sqrt();
+        let hnew = T::fraction(9, 10) * h * (epsilon / truncmax).float_powf(T::fraction(2, 10));
         self.dt = hnew;
 
         let mut ignore_terror = false;

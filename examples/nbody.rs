@@ -1,19 +1,16 @@
 
 
-
-use lwode::{Ode, ode::OdeJacobian, solvers::{ExplicitRk45, Solver, Bdf2}};
-
+use calamus::prelude::*;
 
 
 struct NBodyProblem {
     masses: Vec<f64>,
 }
 
-impl Ode for NBodyProblem {
+impl Ode<f64> for NBodyProblem {
     type Error = ();
 
-    fn eval_f(&self, f: &mut [f64], y: &[f64], _t: f64) -> Result<(), Self::Error> {
-
+    fn eval_f(&self, f: &mut impl calamus::linalg::vector::VectorMut<f64>, y: &impl calamus::linalg::vector::Vector<f64>, _t: f64) -> Result<(), Self::Error> {
         //let g = 6.6743e-11;
         let g = 0.1;
 
@@ -55,9 +52,9 @@ impl Ode for NBodyProblem {
             f[4*i + 3] = ay;
         }
 
-        
         Ok(())
     }
+
     fn problem_size(&self) -> usize {
         // x, y position for all objects
         // vx, vy velocities for all objects

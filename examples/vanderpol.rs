@@ -1,14 +1,18 @@
 
-use lwode::{traits::*, Ode, OdeJacobian, solvers::Bdf2};
+use calamus::prelude::*;
 
 struct VanDerPol {
     kappa: f64,
 }
 
-impl Ode for VanDerPol {
+impl Ode<f64> for VanDerPol {
     type Error = ();
 
-    fn eval_f(&self, f: &mut [f64], y: &[f64], t: f64) -> Result<(), Self::Error> {
+    fn problem_size(&self) -> usize {
+        2
+    }
+
+    fn eval_f(&self, f: &mut impl VectorMut<f64>, y: &impl Vector<f64>, _t: f64) -> Result<(), Self::Error> {
         let x = y[0];
         let y = y[1];
 
@@ -17,24 +21,18 @@ impl Ode for VanDerPol {
 
         Ok(())
     }
-    fn problem_size(&self) -> usize {
-        2
-    }
-}
 
-impl OdeJacobian for VanDerPol {
     // define the analytic jacobian
-    fn eval_jacobian(&self, jac: &mut [f64], y: &[f64], t: f64) -> Result<(), <Self as Ode>::Error> {
-
+    fn eval_jacobian(&self, jac: &mut impl MatrixMut<f64>, y: &impl Vector<f64>, _t: f64) -> Result<(), <Self as Ode<f64>>::Error> {
         let x = y[0];
         let y = y[1];
         let k = self.kappa;
 
-        jac[0] = 0.0;
-        jac[1] = 2.0 * k;
+        jac[[0, 0]] = 0.0;
+        jac[[0, 1]] = 2.0 * k;
 
-        jac[2] = - 4.0 * k.powi(2) * x * y - 2.0 * k;
-        jac[3] = 2.0 * k.powi(2) * (1.0 - x.powi(2));
+        jac[[1, 0]] = - 4.0 * k.powi(2) * x * y - 2.0 * k;
+        jac[[1, 1]] = 2.0 * k.powi(2) * (1.0 - x.powi(2));
 
         Ok(())
     }
@@ -47,10 +45,7 @@ fn main() {
 
     let mut solver = Bdf2::new(ode)
         .with_dt0(1e-7)
-        .with_initial_guess(|i| {
-            let a = [2.0, 0.0];
-            a[i]
-        })
+        .with_initial_guess(&[2.0, 0.0])
         .with_min_dt(1e-8)
         .with_tolerance(1e-3)
         ;

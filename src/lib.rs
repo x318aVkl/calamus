@@ -1,86 +1,44 @@
-//! A light-weight fast ODE solver written entirely in Rust (no dependencies).
-//! Includes a [Ode] trait to define user system of differential equations of the form:
-//! dy/dt = f(t,y,p)
-//! with p solver-constant user defined parameters contained in the Ode struct.
-//! Includes two solvers:
-//! - [ExplicitRk45], an implementation of the Runge-Kutta Faulberg method, suitable for non-stiff problems
-//! - [Bdf2], an adaptive implicit second order BDF-2 solver build for stiff problems
-//!
-//! Due to the pure Rust nature of the crate, the compromise made is using dense Jacobians in [Bdf2], so [Bdf2] is not suitable for large sparse problems.
-//!
-//! Per example, solving the VanDerPol stiff equation:
-//! ```rust
-//! use lwode::{Ode, OdeJacobian, Bdf2, traits::Solver};
-//! 
-//! // Struct defining the Ode problem's constant data
-//! struct VanDerPol {
-//!     kappa: f64,
-//! }
-//! 
-//! // Implementation of the Ode trait for our problem
-//! impl Ode for VanDerPol {
-//!     type Error = ();
-//!     
-//!     // evaluate the f term: dy/dt = f(t,y,p)
-//!     fn eval_f(&self, f: &mut [f64], y: &[f64], t: f64) -> Result<(), Self::Error> {
-//!         let x = y[0];
-//!         let y = y[1];
-//! 
-//!         f[0] = 2.0 * self.kappa * y;
-//!         f[1] = 2.0 * self.kappa.powi(2) * (1.0 - x.powi(2)) * y - 2.0 * self.kappa * x;
-//! 
-//!         Ok(())
-//!     }
-//! 
-//!     fn problem_size(&self) -> usize {
-//!         2
-//!     }
-//! }
-//! 
-//! // Implementation of the OdeJacobian trait, required for implicit problems
-//! impl OdeJacobian for VanDerPol {
-//!     // use automatic differentiation jacobian by default
-//! }
-//! 
-//! fn main() -> Result<(), ()> {
-//!     
-//!     // Create the problem data
-//!     let ode = VanDerPol { kappa: 200.0 };
-//!        
-//!     // Create the solver and set parameters
-//!     let mut solver = Bdf2::new(ode)
-//!         .with_tolerance(1e-3)
-//!         .with_min_dt(1e-8)
-//!         .with_initial_guess(|i| {[2.0, 0.0][i]});
-//!     
-//!     // First, solve to a time of 0.4, solution should still be positive
-//!     solver.solve_to(0.4)?;
-//!     assert!(solver.solution()[0] > 0.0);    
-//!     
-//!     // Then, move to 0.42, solution should flip to negative
-//!     solver.solve_to(0.42)?;
-//!     assert!(solver.solution()[0] < 0.0);
-//!
-//!     Ok(()) 
-//! }
-//! 
-//! ```
-//! 
 
+
+pub mod num_traits;
+pub mod linalg;
+pub mod optimize;
 pub mod ode;
-pub mod solvers;
-mod linalg;
-
-pub use ode::{
-    Ode, OdeJacobian,
-};
-
-pub use solvers::{
-    ExplicitRk45, Bdf2,
-};
 
 
 pub mod traits {
-    pub use super::ode::{Ode, OdeJacobian};
-    pub use super::solvers::Solver;
+    use super::*;
+
+
+    pub use ode::traits::*;
 }
+
+
+
+
+
+pub mod prelude {
+
+
+    use super::*;
+
+
+
+    pub use num_traits::FloatNumber;
+
+    pub use linalg::{
+        vector::{Vector, VectorMut, DynamicVector},
+        matrix::{Matrix, MatrixMut, DynamicMatrix},
+        lu::DynamicLu,
+    };
+
+    pub use optimize::{
+        root::{NewtonSolver, RootProblem},
+        minimize::{MinimizeProblem, NewtonMinimizationProblem},
+    };
+
+    pub use ode::{
+        Ode, Bdf2, ExplicitRk45, traits::*,
+    };
+}
+

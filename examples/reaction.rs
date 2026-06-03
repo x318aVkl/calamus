@@ -1,17 +1,17 @@
 // solve a stiff system of 5 species and temperature, with 3 reactions
 
 
-use lwode::{traits::*, Ode, OdeJacobian, solvers::Bdf2};
+use calamus::prelude::*;
 
 
 
 
 struct Reaction;
 
-impl Ode for Reaction {
+impl Ode<f64> for Reaction {
     type Error = ();
 
-    fn eval_f(&self, f: &mut [f64], y: &[f64], t: f64) -> Result<(), Self::Error> {
+    fn eval_f(&self, f: &mut impl calamus::linalg::vector::VectorMut<f64>, y: &impl calamus::linalg::vector::Vector<f64>, _t: f64) -> Result<(), Self::Error> {
         let a = y[0];
         let b = y[1];
         let c = y[2];
@@ -53,10 +53,6 @@ impl Ode for Reaction {
     }
 }
 
-impl OdeJacobian for Reaction {
-    // use automatic differentiation jacobian
-}
-
 
 
 
@@ -64,10 +60,7 @@ fn main() {
 
     let mut solver = Bdf2::new(Reaction)
         .with_dt0(1e-7)
-        .with_initial_guess(|i| {
-            let a = [2.0, 1.0, 0.0, 0.0, 0.0, 1.0];
-            a[i]
-        })
+        .with_initial_guess(&[2.0, 1.0, 0.0, 0.0, 0.0, 1.0])
         .with_min_dt(1e-12)
         .with_tolerance(1e-3)
         ;
