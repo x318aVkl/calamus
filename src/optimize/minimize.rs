@@ -166,6 +166,9 @@ impl<T: FloatNumber, P: MinimizationProblem<T>> NewtonMinimizationProblem<T, P> 
             td: PhantomData,
         }
     }
+    pub fn problem(&self) -> &P {
+        &self.problem
+    }
 }
 
 
@@ -196,6 +199,7 @@ pub struct GradientDescentSolver<T, P> {
     steps: usize,
     pub max_steps: usize,
     pub tolerance: T,
+    pub step_decrease: T,
 }
 
 
@@ -224,6 +228,7 @@ impl<T, P> GradientDescentSolver<T, P> where T: FloatNumber, P: MinimizationProb
             steps: 0,
             max_steps: 10000,
             tolerance: T::EPSILON.float_sqrt() * T::from(1000),
+            step_decrease: T::fraction(99, 100),
         }
     }
 
@@ -249,7 +254,7 @@ impl<T, P> GradientDescentSolver<T, P> where T: FloatNumber, P: MinimizationProb
         }
 
         // compute the current step size
-        self.step_size *= (residual / self.last_residual).float_min(T::fraction(12, 10)).float_max(T::fraction(5, 10));
+        self.step_size *= (self.step_decrease * self.last_residual / residual).float_min(T::fraction(15, 10)).float_max(T::fraction(5, 10));
 
         // move
         for i in 0..self.gradient.len() {
@@ -273,6 +278,9 @@ impl<T, P> GradientDescentSolver<T, P> where T: FloatNumber, P: MinimizationProb
             self.steps += 1;
 
             if self.last_residual <= self.tolerance {
+                break;
+            }
+            if self.last_residual != self.last_residual {
                 break;
             }
             if self.steps >= self.max_steps {

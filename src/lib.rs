@@ -1,6 +1,7 @@
 
 
 pub mod num_traits;
+pub mod complex;
 pub mod linalg;
 pub mod optimize;
 pub mod ode;

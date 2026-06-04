@@ -35,11 +35,6 @@ fn main() {
     println!("{:?}", result);
 
     let y = solver.solution();
-    print!("solution = (");
-    for i in 0..y.len() {
-        print!("{:?}, ", y[i]);
-    }
-    print!(")\n");
-
+    println!("solution = {:?}", &y[0..y.len()]);
 
 }

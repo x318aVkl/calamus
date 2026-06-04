@@ -136,7 +136,7 @@ pub struct NewtonSolverResult<T> {
     #[allow(dead_code)]
     iterations: usize,
     #[allow(dead_code)]
-    final_residual: T,
+    residual: T,
 }
 
 
@@ -224,7 +224,7 @@ impl<T, P, F> NewtonSolver<T, P, F> where F: MatrixFactorization<T>, T: FloatNum
 
         Ok(NewtonSolverResult { 
             iterations: self.niters, 
-            final_residual: self.residual_norm 
+            residual: self.residual_norm 
         })
     }
 

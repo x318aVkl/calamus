@@ -149,6 +149,13 @@ impl<'a, T> core::ops::Index<usize> for VectorView<'a, T> {
     }
 }
 
+impl<'a, T> core::ops::Index<core::ops::Range<usize>> for VectorView<'a, T> {
+    type Output = [T];
+    fn index(&self, index: core::ops::Range<usize>) -> &Self::Output {
+        &self.data[index]
+    }
+}
+
 impl<'a, T> Vector<T> for VectorView<'a, T> {
     fn len(&self) -> usize {
         self.data.len()

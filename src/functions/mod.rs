@@ -3,6 +3,8 @@
 pub mod gamma;
 pub mod bessel;
 pub mod amg;
+pub mod beta;
+pub mod lagrange;
 
 
 

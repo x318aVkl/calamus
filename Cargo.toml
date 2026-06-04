@@ -3,3 +3,5 @@ name = "calamus"
 version = "0.1.0"
 edition = "2024"
 
+[profile.dev]
+opt-level = 1

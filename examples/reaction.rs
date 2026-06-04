@@ -31,7 +31,7 @@ impl Ode<f64> for Reaction {
 
         // reaction 1 is moderately fast, happens at high temperature
         // reaction 2 is very fast, happens at low temperature
-        // reacction 3 is slow, endothermic and increases in strength with temperature
+        // reacction 3 is slow, endothermic and decreases in strength with temperature
 
         let r1 = 2e5 * a * b * (- 10.0 / temp).exp();
         let r2 = 1e20 * c.powi(2) * b * (- 1.0 / temp).exp();
@@ -70,5 +70,4 @@ fn main() {
         let y = solver.solution();
         println!("{} {} {} {} {} {} {}", solver.time(), y[0], y[1], y[2], y[3], y[4], y[5]);
     }
-    
 }

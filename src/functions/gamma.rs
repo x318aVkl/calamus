@@ -3,10 +3,16 @@
 //! ```rust
 //! 
 //! use calamus::functions::gamma::gamma;
+//! use calamus::complex::Complex;
 //! 
 //! let x = gamma(5.0);
 //! 
 //! assert!((x - 24.0).abs() < 1e-12);
+//! 
+//! let x = Complex::<f64>::new(1.0, 0.5);
+//! let sol = Complex::<f64>::new(0.8016940970697171, -0.19963973816459632);
+//! 
+//! assert!((gamma(x) - sol).abs() < 1e-12);
 //! 
 //! 
 //! ```

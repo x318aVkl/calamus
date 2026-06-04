@@ -25,7 +25,8 @@ As such, the goal of this library is to provide as performant as possible, pure 
 - Multivariate function minimization
 - Explicit Rk45 adaptive Ode solver
 - Implicit Bdf23 adaptive Ode solver
-- Functions
+- Complex numbers
+- Functions of real or complex values
 
 
 ## Design methodology

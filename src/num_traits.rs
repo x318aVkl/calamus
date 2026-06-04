@@ -1,5 +1,5 @@
 
-
+// Number (possibly complex), internally represented by a/multiple floating point number(s)
 pub trait FloatNumber: 
 core::cmp::PartialEq 
 + core::cmp::PartialOrd 
@@ -47,6 +47,9 @@ core::cmp::PartialEq
 
     fn float_sin(self) -> Self;
     fn float_cos(self) -> Self;
+    fn float_atan2(self, rhs: Self) -> Self;
+
+    fn float_ln(self) -> Self;
 }
 
 
@@ -99,5 +102,12 @@ impl FloatNumber for f64 {
     }
     fn float_cos(self) -> Self {
         self.cos()
+    }
+    fn float_atan2(self, rhs: Self) -> Self {
+        self.atan2(rhs)
+    }
+
+    fn float_ln(self) -> Self {
+        self.ln()
     }
 }
