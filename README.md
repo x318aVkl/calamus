@@ -1,8 +1,7 @@
 
+# calamus
 
-# scixl
-
-A lightweight library for scientific computing, designed to have no dependency.
+A lightweight library for scientific computing, designed to have no dependency. Named after the root of a feather.
 
 
 ## Objective
@@ -18,14 +17,15 @@ As such, the goal of this library is to provide as performant as possible, pure 
 
 
 
-## Status
+## Features
 
-- [x] Dense linear algebra
-- [x] Sparse linear algebra
-- [x] Multivariate function root finding
-- [x] Multivariate function minimization
-- [x] Explicit Rk45 adaptive Ode solver
-- [x] Implicit Bdf23 adaptive Ode solver
+- Dense linear algebra
+- Sparse linear algebra
+- Multivariate function root finding
+- Multivariate function minimization
+- Explicit Rk45 adaptive Ode solver
+- Implicit Bdf23 adaptive Ode solver
+- Functions
 
 
 ## Design methodology

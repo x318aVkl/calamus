@@ -2,7 +2,7 @@
 //! 
 //! ```rust
 //! 
-//! use scixl::functions::bessel::{bessel_first_kind, bessel_second_kind};
+//! use calamus::functions::bessel::{bessel_first_kind, bessel_second_kind};
 //! 
 //! let x = bessel_first_kind(5.0, 1.0);
 //! 

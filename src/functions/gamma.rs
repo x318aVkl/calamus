@@ -2,7 +2,7 @@
 //! 
 //! ```rust
 //! 
-//! use scixl::functions::gamma::gamma;
+//! use calamus::functions::gamma::gamma;
 //! 
 //! let x = gamma(5.0);
 //! 

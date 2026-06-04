@@ -1,7 +1,7 @@
 // solve a stiff system of 5 species and temperature, with 3 reactions
 
 
-use scixl::prelude::*;
+use calamus::prelude::*;
 
 
 
@@ -11,7 +11,7 @@ struct Reaction;
 impl Ode<f64> for Reaction {
     type Error = ();
 
-    fn eval_f(&self, f: &mut impl scixl::linalg::vector::VectorMut<f64>, y: &impl scixl::linalg::vector::Vector<f64>, _t: f64) -> Result<(), Self::Error> {
+    fn eval_f(&self, f: &mut impl calamus::linalg::vector::VectorMut<f64>, y: &impl calamus::linalg::vector::Vector<f64>, _t: f64) -> Result<(), Self::Error> {
         let a = y[0];
         let b = y[1];
         let c = y[2];

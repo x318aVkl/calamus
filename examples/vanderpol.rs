@@ -1,5 +1,5 @@
 
-use scixl::prelude::*;
+use calamus::prelude::*;
 
 struct VanDerPol {
     kappa: f64,

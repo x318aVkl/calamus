@@ -5,7 +5,7 @@
 //! 
 //! ```rust
 //! 
-//! use scixl::linalg::sparse::csr::SparseMatrixCSR;
+//! use calamus::linalg::sparse::csr::SparseMatrixCSR;
 //! 
 //! let mut a = SparseMatrixCSR::<f64>::new();
 //! 

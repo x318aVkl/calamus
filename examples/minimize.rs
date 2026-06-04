@@ -1,4 +1,4 @@
-use scixl::{optimize::minimize::GradientDescentSolver, prelude::*};
+use calamus::{optimize::minimize::GradientDescentSolver, prelude::*};
 
 
 struct Problem;
@@ -10,7 +10,7 @@ impl MinimizationProblem<f64> for Problem {
     fn size(&self) -> usize {
         3
     }
-    fn cost(&self, solution: &impl scixl::linalg::vector::Vector<f64>) -> Result<f64, Self::Error> {
+    fn cost(&self, solution: &impl calamus::linalg::vector::Vector<f64>) -> Result<f64, Self::Error> {
         let x = solution[0];
         let y = solution[1];
         let l = solution[2];

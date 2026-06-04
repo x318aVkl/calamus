@@ -3,7 +3,7 @@
 //! 
 //! ```rust
 //! 
-//! use scixl::functions::amg::amg;
+//! use calamus::functions::amg::amg;
 //! 
 //! let x = amg(24.0, 6.0);
 //! 
