@@ -7,9 +7,12 @@
 
 pub mod vector;
 pub mod matrix;
-pub mod lu;
+pub mod factorize;
+pub mod sparse;
 
-use crate::num_traits::FloatNumber;
+pub use matrix::{Matrix, MatrixMut};
+pub use vector::{Vector, VectorMut};
+
 
 #[derive(Debug)]
 pub enum Error {
@@ -25,19 +28,6 @@ impl std::fmt::Display for Error {
 }
 
 impl std::error::Error for Error {
-}
-
-
-
-
-pub trait MatrixFactorization<T> {
-    fn allocate(size: usize) -> Self where Self: Sized;
-
-    fn set_matrix<M>(&mut self, matrix: &M) -> Result<(), Error> where M: matrix::Matrix<T>;
-
-    fn factorize(&mut self) -> Result<(), Error> where T: FloatNumber;
-
-    fn solve<X, B>(&self, x: &mut X, b: &B) where X: vector::VectorMut<T>, B: vector::Vector<T>, T: FloatNumber;
 }
 
 

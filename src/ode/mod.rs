@@ -10,7 +10,7 @@
 //!
 //! Per example, solving the VanDerPol stiff equation:
 //! ```rust
-//! use calamus::prelude::*;
+//! use scixl::prelude::*;
 //! 
 //! // Struct defining the Ode problem's constant data
 //! struct VanDerPol {

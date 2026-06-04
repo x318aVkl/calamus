@@ -3,8 +3,9 @@
 
 use crate::{linalg::{matrix::DynamicMatrix, vector::VectorMut}, num_traits::FloatNumber};
 
-use super::{Error, vector::Vector, matrix::{Matrix, MatrixMut}, MatrixFactorization};
+use crate::linalg::{Error, Vector, matrix::{Matrix, MatrixMut}};
 
+use super::MatrixFactorization;
 
 
 pub struct DynamicLu<T> {

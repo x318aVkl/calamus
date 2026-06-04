@@ -1,6 +1,6 @@
 
 
-use calamus::prelude::*;
+use scixl::prelude::*;
 
 
 struct NBodyProblem {
@@ -10,7 +10,7 @@ struct NBodyProblem {
 impl Ode<f64> for NBodyProblem {
     type Error = ();
 
-    fn eval_f(&self, f: &mut impl calamus::linalg::vector::VectorMut<f64>, y: &impl calamus::linalg::vector::Vector<f64>, _t: f64) -> Result<(), Self::Error> {
+    fn eval_f(&self, f: &mut impl scixl::linalg::vector::VectorMut<f64>, y: &impl scixl::linalg::vector::Vector<f64>, _t: f64) -> Result<(), Self::Error> {
         //let g = 6.6743e-11;
         let g = 0.1;
 

@@ -1,6 +1,6 @@
 
 
-use crate::{linalg::{self, lu::DynamicLu, vector::{DynamicVector, Vector, VectorMut, VectorView, VectorViewMut}}, num_traits::FloatNumber, ode::{Ode, solvers::Solver}, optimize::root::{NewtonSolver, NewtonSolverError, RootProblem}};
+use crate::{linalg::{self, factorize::lu::DynamicLu, vector::{DynamicVector, Vector, VectorMut, VectorView, VectorViewMut}}, num_traits::FloatNumber, ode::{Ode, solvers::Solver}, optimize::root::{NewtonSolver, NewtonSolverError, RootProblem}};
 
 
 

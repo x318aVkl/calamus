@@ -26,9 +26,13 @@ core::cmp::PartialEq
     const TWO: Self;
     const HALF: Self;
 
+    const PI: Self;
+
     fn float_abs(self) -> Self;
 
     fn float_sqrt(self) -> Self;
+
+    fn float_exp(self) -> Self;
 
     fn float_max(self, rhs: Self) -> Self;
 
@@ -38,6 +42,11 @@ core::cmp::PartialEq
 
     fn float_powf(self, exponent: Self) -> Self;
     fn float_powi(self, exponent: i32) -> Self;
+
+    fn float_from_f64(x: f64) -> Self;
+
+    fn float_sin(self) -> Self;
+    fn float_cos(self) -> Self;
 }
 
 
@@ -48,12 +57,18 @@ impl FloatNumber for f64 {
     const TWO: Self = 2.0;
     const HALF: Self = 0.5;
 
+    const PI: Self = core::f64::consts::PI;
+
     fn float_abs(self) -> Self {
         self.abs()
     }
 
     fn float_sqrt(self) -> Self {
         self.sqrt()
+    }
+
+    fn float_exp(self) -> Self {
+        self.exp()
     }
 
     fn float_max(self, rhs: Self) -> Self {
@@ -73,5 +88,16 @@ impl FloatNumber for f64 {
     }
     fn float_powi(self, exponent: i32) -> Self {
         self.powi(exponent)
+    }
+
+    fn float_from_f64(x: f64) -> Self {
+        x
+    }
+
+    fn float_sin(self) -> Self {
+        self.sin()
+    }
+    fn float_cos(self) -> Self {
+        self.cos()
     }
 }

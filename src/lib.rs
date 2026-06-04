@@ -4,6 +4,8 @@ pub mod num_traits;
 pub mod linalg;
 pub mod optimize;
 pub mod ode;
+pub mod functions;
+
 
 
 pub mod traits {
@@ -12,7 +14,6 @@ pub mod traits {
 
     pub use ode::traits::*;
 }
-
 
 
 
@@ -29,12 +30,15 @@ pub mod prelude {
     pub use linalg::{
         vector::{Vector, VectorMut, DynamicVector},
         matrix::{Matrix, MatrixMut, DynamicMatrix},
-        lu::DynamicLu,
+        factorize::{
+            MatrixFactorization,
+            lu::DynamicLu,
+        }
     };
 
     pub use optimize::{
         root::{NewtonSolver, RootProblem},
-        minimize::{MinimizeProblem, NewtonMinimizationProblem},
+        minimize::{MinimizationProblem, NewtonMinimizationProblem},
     };
 
     pub use ode::{

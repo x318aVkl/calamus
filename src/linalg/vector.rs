@@ -28,6 +28,14 @@ pub struct StaticVector<T, const N: usize> {
 }
 
 
+impl<T> From<Vec<T>> for DynamicVector<T> {
+    fn from(value: Vec<T>) -> Self {
+        Self { data: value }
+    }
+}
+
+
+
 /// Trait that defines common vector methods
 pub trait Vector<T>: core::ops::Index<usize, Output = T> {
     fn len(&self) -> usize;
@@ -37,7 +45,22 @@ pub trait Vector<T>: core::ops::Index<usize, Output = T> {
     fn view<'a>(&'a self) -> VectorView<'a, T> {
         VectorView { data: self.data() }
     }
+
+    fn slice<'a>(&'a self, start: usize, end: usize) -> VectorView<'a, T> {
+        VectorView { data: &self.data()[start..end] }
+    }
+
+    fn split<'a>(&'a self, position: usize) -> (VectorView<'a, T>, VectorView<'a, T>) {
+        let n = self.len();
+        (
+            VectorView { data: &self.data()[0..position] },
+            VectorView { data: &self.data()[position..n] }
+        )
+    }
 }
+
+
+
 
 /// Trait that defines common mutable vector methods
 pub trait VectorMut<T>: Vector<T> + core::ops::IndexMut<usize, Output = T> {
@@ -50,6 +73,19 @@ pub trait VectorMut<T>: Vector<T> + core::ops::IndexMut<usize, Output = T> {
     fn scope<'a>(&'a mut self, op: impl Fn(&'a mut Self) -> ()) {
         op(self)
     } 
+
+    fn slice_mut<'a>(&'a mut self, start: usize, end: usize) -> VectorViewMut<'a, T> {
+        VectorViewMut { data: &mut self.data_mut()[start..end] }
+    }
+
+    fn split_mut<'a>(&'a mut self, position: usize) -> (VectorViewMut<'a, T>, VectorViewMut<'a, T>) {
+        let (s0, s1) = self.data_mut().split_at_mut(position);
+        (
+            VectorViewMut { data: s0 },
+            VectorViewMut { data: s1 }
+        )
+    }
+
 }
 
 

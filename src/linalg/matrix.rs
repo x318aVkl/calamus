@@ -37,6 +37,13 @@ impl<T> DynamicMatrix<T> {
 }
 
 
+impl<T> From<([usize; 2], Vec<T>)> for DynamicMatrix<T> {
+    fn from(value: ([usize; 2], Vec<T>)) -> Self {
+        Self { data: value.1, ncolumns: value.0[1] }
+    }
+}
+
+
 pub trait Matrix<T>: core::ops::Index<[usize; 2], Output = T> {
     fn shape(&self) -> [usize; 2];
 

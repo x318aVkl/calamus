@@ -1,4 +1,4 @@
-use crate::{linalg::{self, MatrixFactorization, lu::DynamicLu, matrix::{DynamicMatrix, MatrixMut}, vector::{DynamicVector, Vector, VectorMut, VectorView, VectorViewMut}}, num_traits::FloatNumber};
+use crate::{linalg::{self, factorize::MatrixFactorization, factorize::lu::DynamicLu, matrix::{DynamicMatrix, MatrixMut}, vector::{DynamicVector, Vector, VectorMut, VectorView, VectorViewMut}}, num_traits::FloatNumber};
 
 
 
@@ -131,16 +131,12 @@ impl<E: std::fmt::Debug> NewtonSolverError<E> {
 }
 
 
-
+#[derive(Debug)]
 pub struct NewtonSolverResult<T> {
+    #[allow(dead_code)]
     iterations: usize,
+    #[allow(dead_code)]
     final_residual: T,
-}
-
-impl<T> std::fmt::Debug for NewtonSolverResult<T> where T: std::fmt::Debug {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "NewtonSolverResult(iterations={}, residual={:?})", self.iterations, self.final_residual)
-    }
 }
 
 

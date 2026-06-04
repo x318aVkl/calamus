@@ -1,4 +1,4 @@
-use calamus::prelude::*;
+use scixl::prelude::*;
 
 
 struct Problem;
@@ -9,7 +9,7 @@ impl RootProblem<f64> for Problem {
         3
     }
 
-    fn residual(&self, residual: &mut impl calamus::linalg::vector::VectorMut<f64>, solution: &impl calamus::linalg::vector::Vector<f64>) -> Result<(), Self::Error> {
+    fn residual(&self, residual: &mut impl scixl::linalg::vector::VectorMut<f64>, solution: &impl scixl::linalg::vector::Vector<f64>) -> Result<(), Self::Error> {
 
         let x = solution[0];
         let y = solution[1];
@@ -28,7 +28,7 @@ fn main() {
 
     let mut solver = NewtonSolver::<_, _, DynamicLu<f64>>::new(Problem);
 
-    solver.set_initial_guess(&[0.0, 0.0, 0.0]);
+    solver.set_initial_guess(&[1.0, 1.0, 1.0]);
 
     let result = solver.solve().unwrap();
 

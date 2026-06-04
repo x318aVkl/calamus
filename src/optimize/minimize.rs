@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{linalg::{matrix::MatrixMut, vector::{DynamicVector, Vector, VectorMut, VectorViewMut}}, num_traits::FloatNumber, optimize::root::RootProblem};
+use crate::{linalg::{matrix::MatrixMut, vector::{DynamicVector, Vector, VectorMut, VectorView, VectorViewMut}}, num_traits::FloatNumber, optimize::root::RootProblem};
 
 
 
@@ -9,7 +9,7 @@ const MAX_SIZE_STATIC_JACOBIAN: usize = 16;
 
 
 
-pub trait MinimizeProblem<T: FloatNumber> {
+pub trait MinimizationProblem<T: FloatNumber> {
     type Error;
 
     fn size(&self) -> usize;
@@ -114,7 +114,7 @@ pub trait MinimizeProblem<T: FloatNumber> {
         
 
         for i in 0..n {
-            for j in 0..n {
+            for j in i..n {
                 let y0i = y[i];
                 let dyi = scale.float_max(y0i.float_abs() * scale);
                 yd[i] = y0i + dyi;
@@ -141,6 +141,8 @@ pub trait MinimizeProblem<T: FloatNumber> {
 
                 hessian[[i, j]] = (cpij - cpi - cpj + c00) / (dyi * dyj);
 
+                hessian[[j, i]] = hessian[[i, j]];
+
             }
         }
 
@@ -152,12 +154,12 @@ pub trait MinimizeProblem<T: FloatNumber> {
 
 
 
-pub struct NewtonMinimizationProblem<T: FloatNumber, P> where P: MinimizeProblem<T> {
+pub struct NewtonMinimizationProblem<T: FloatNumber, P> where P: MinimizationProblem<T> {
     problem: P,
     td: PhantomData<T>,
 }
 
-impl<T: FloatNumber, P: MinimizeProblem<T>> NewtonMinimizationProblem<T, P> {
+impl<T: FloatNumber, P: MinimizationProblem<T>> NewtonMinimizationProblem<T, P> {
     pub fn new(problem: P) -> Self {
         Self {
             problem,
@@ -168,7 +170,7 @@ impl<T: FloatNumber, P: MinimizeProblem<T>> NewtonMinimizationProblem<T, P> {
 
 
 
-impl<T, F> RootProblem<T> for NewtonMinimizationProblem<T, F> where F: MinimizeProblem<T>, T: FloatNumber, <F as MinimizeProblem<T>>::Error: std::fmt::Debug {
+impl<T, F> RootProblem<T> for NewtonMinimizationProblem<T, F> where F: MinimizationProblem<T>, T: FloatNumber, <F as MinimizationProblem<T>>::Error: std::fmt::Debug {
     type Error = F::Error;
     fn size(&self) -> usize {
         self.problem.size()
@@ -180,4 +182,112 @@ impl<T, F> RootProblem<T> for NewtonMinimizationProblem<T, F> where F: MinimizeP
         self.problem.hessian(jacobian, solution)
     }
 }
+
+
+
+// Solver which uses gradient descent instead of newton method
+// usefull to find a rough estimate before using a newton type method
+pub struct GradientDescentSolver<T, P> {
+    problem: P,
+    solution: DynamicVector<T>,
+    gradient: DynamicVector<T>,
+    pub step_size: T,
+    last_residual: T,
+    steps: usize,
+    pub max_steps: usize,
+    pub tolerance: T,
+}
+
+
+#[derive(Debug)]
+pub struct GradientDescentSolverResult<T> {
+    #[allow(dead_code)]
+    iterations: usize,
+    #[allow(dead_code)]
+    residual: T,
+    #[allow(dead_code)]
+    cost: T,
+}
+
+
+
+impl<T, P> GradientDescentSolver<T, P> where T: FloatNumber, P: MinimizationProblem<T> {
+
+    pub fn new(problem: P) -> Self {
+        let size = problem.size();
+        Self {
+            problem,
+            solution: DynamicVector::new(T::ZERO, size),
+            gradient: DynamicVector::new(T::ZERO, size),
+            step_size: T::fraction(1, 1000),
+            last_residual: T::ONE,
+            steps: 0,
+            max_steps: 10000,
+            tolerance: T::EPSILON.float_sqrt() * T::from(1000),
+        }
+    }
+
+    pub fn solution<'a>(&'a self) -> VectorView<'a, T> {
+        self.solution.view()
+    }
+
+
+    fn step(&mut self) -> Result<(), P::Error> {
+
+        // compute the gradient
+        self.problem.gradient(&mut self.gradient, &self.solution)?;
+
+        // compute the current residual as the gradient norm
+        let mut residual: T = T::ZERO;
+        for i in 0..self.gradient.len() {
+            residual += self.gradient[i].float_powi(2);
+        }
+        residual = residual.float_sqrt();
+
+        if self.steps == 0 {
+            self.last_residual = residual;
+        }
+
+        // compute the current step size
+        self.step_size *= (residual / self.last_residual).float_min(T::fraction(12, 10)).float_max(T::fraction(5, 10));
+
+        // move
+        for i in 0..self.gradient.len() {
+            self.solution[i] -= self.gradient[i] * self.step_size;
+        }
+
+        // done!
+        self.last_residual = residual;
+
+        Ok(())
+    }
+
+
+    pub fn solve(&mut self) -> Result<GradientDescentSolverResult<T>, P::Error> {
+
+        loop {
+            self.step()?;
+
+            //println!("{} {:?} {:?} {:?}", self.steps, self.step_size, self.last_residual, self.solution);
+
+            self.steps += 1;
+
+            if self.last_residual <= self.tolerance {
+                break;
+            }
+            if self.steps >= self.max_steps {
+                break;
+            }
+        }
+
+        Ok(GradientDescentSolverResult { iterations: self.steps, residual: self.last_residual, cost: self.problem.cost(&self.solution())? })
+    }
+
+}
+
+
+
+
+
+
 
