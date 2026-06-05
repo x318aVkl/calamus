@@ -34,6 +34,13 @@ impl<T> DynamicMatrix<T> {
     pub fn new(value: T, shape: [usize; 2]) -> Self where T: Copy {
         Self { data: vec![value; shape[0]*shape[1]], ncolumns: shape[1] }
     }
+    pub fn eye(shape: [usize; 2]) -> Self where T: Copy + From<u8> {
+        let mut m = Self::new(T::from(0), shape);
+        for i in 0..shape[0].min(shape[1]) {
+            m[[i, i]] = T::from(1);
+        }
+        m
+    }
 }
 
 
@@ -64,6 +71,18 @@ pub trait Matrix<T>: core::ops::Index<[usize; 2], Output = T> {
                 ai += self[[i, j]] * rhs[j];
             }
             result[i] = ai;
+        }
+    }
+
+
+    fn imul_left<'a, A, B>(&'a self, result: &mut A, lhs: &B) where A: VectorMut<T>, B: Vector<T>, T: core::ops::AddAssign + core::ops::Mul<Output = T> + Copy + From<u8> {
+        assert_eq!(self.shape()[0], lhs.len());
+        assert_eq!(self.shape()[1], result.len());
+
+        for i in 0..self.shape()[0] {
+            for j in 0..self.shape()[1] {
+                result[j] += lhs[i] * self[[i, j]];
+            }
         }
     }
 }

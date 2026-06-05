@@ -53,20 +53,45 @@ impl MinimizationProblem<f64> for LagrangeMultiplier {
 }
 
 
+struct ConvexProblem;
+
+impl MinimizationProblem<f64> for ConvexProblem {
+    type Error = ();
+
+    fn size(&self) -> usize {
+        2
+    }
+
+    fn cost(&self, solution: &impl Vector<f64>) -> Result<f64, Self::Error> {
+        let x = solution[0];
+        let y = solution[1];
+
+        // Ok(
+        //     (2.0*x + 1.0*y - 7.0).powi(2)
+        //     + (1.0*x + 2.0*y - 5.0).powi(2)
+        // )
+        Ok(
+            0.26 * (x*x + y*y) - 0.48 * x * y
+        )
+    }
+}
+
+
 fn main() {
 
     // create the problem definition with parameters
     // here, kappa defines the shape of the constraint
     // kappa = 1.0, circle
     // kappa = 2.0, ellipse of height = width/2
-    let problem = Problem { kappa: 2.0 };
+    let problem = Problem { kappa: 1.0 };
     let penalty = 10.0;
 
     // Use the gradient descent solver to find a rough spot for the solution
     // lets the newton solver start close to a minima, and not a maxima
     let mut solver = GradientDescentSolver::new(Penalty(problem, penalty));
+    solver.set_initial_guess(&[1.0, 1.0]);
 
-    solver.step_size = 0.05;
+    solver.step_size = 0.1;
     solver.max_steps = 500;
     solver.tolerance = 0.1;
 
@@ -80,11 +105,12 @@ fn main() {
     // Fine tune the solution using the more costly newton solver
     // since we start close to the solution, this should not take a lot of iterations
     let mut solver = NewtonSolver::<_, _, DynamicLu<f64>>::new(NewtonMinimizationProblem::new(LagrangeMultiplier(problem)));
+    //let mut solver = BFGSSolver::new(LagrangeMultiplier(problem));
     solver.set_initial_guess(&[y[0], y[1], 1.0]);
 
     println!("intermediate cost = {:?}", problem.cost(y[0], y[1]));
     println!("intermediate constraint = {:?}", problem.constraint(y[0], y[1]));
-     println!();
+    println!();
 
     let result = solver.solve().unwrap();
 
@@ -95,5 +121,23 @@ fn main() {
 
     println!("final cost = {:?}", problem.cost(y[0], y[1]));
     println!("final constraint = {:?}", problem.constraint(y[0], y[1]));
+
+
+    // now try the BFGS solver with a convex unconstrained problem
+    //let mut solver = NewtonSolver::<_, _, DynamicLu<f64>>::new(NewtonMinimizationProblem::new(ConvexProblem));
+    let mut solver = BFGSSolver::new(ConvexProblem);
+
+    let guess = [1.0, 2.0];
+
+    solver.set_initial_guess(&guess);
+
+    solver.max_steps = 200;
+
+    let result = solver.solve().unwrap();
+
+    println!("\nBFGS solver result:");
+    println!("{:?}", result);
+    println!("solution = {:?}", solver.solution());
+
 
 }

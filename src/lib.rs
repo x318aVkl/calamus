@@ -28,6 +28,8 @@ pub mod prelude {
 
     pub use num_traits::FloatNumber;
 
+    pub use complex::Complex;
+
     pub use linalg::{
         vector::{Vector, VectorMut, DynamicVector},
         matrix::{Matrix, MatrixMut, DynamicMatrix},
@@ -39,7 +41,7 @@ pub mod prelude {
 
     pub use optimize::{
         root::{NewtonSolver, RootProblem},
-        minimize::{MinimizationProblem, NewtonMinimizationProblem},
+        minimize::{MinimizationProblem, NewtonMinimizationProblem, GradientDescentSolver, BFGSSolver},
     };
 
     pub use ode::{

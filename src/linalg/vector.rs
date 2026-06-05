@@ -57,6 +57,14 @@ pub trait Vector<T>: core::ops::Index<usize, Output = T> {
             VectorView { data: &self.data()[position..n] }
         )
     }
+
+    fn dot<Rhs, V>(&self, rhs: &Rhs) -> T where Rhs: Vector<V>, T: core::ops::Mul<V, Output = T> + core::ops::AddAssign<T> + From<u8> + Copy, V: Copy {
+        let mut out = T::from(0);
+        for i in 0..self.len() {
+            out += self[i] * rhs[i];
+        }
+        out
+    }
 }
 
 
@@ -256,4 +264,12 @@ impl<'a, T> Into<VectorView<'a, T>> for &'a [T] {
     }
 }
 
+impl<T> Vector<T> for Vec<T> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+    fn data(&self) -> &[T] {
+        &self
+    }
+}
 
